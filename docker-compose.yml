@@ -1,0 +1,10 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8020:8000"
+    volumes:
+      - .:/app
+    working_dir: /app
