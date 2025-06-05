@@ -1,33 +1,31 @@
 # Dockerfile
 FROM php:8.3-cli
 
-# Install system dependencies
+# Instala extensiones necesarias
 RUN apt-get update && apt-get install -y \
     unzip \
     sqlite3 \
     libsqlite3-dev \
-    git \
-    curl \
-    zip \
     libzip-dev \
+    zip \
     && docker-php-ext-install pdo pdo_sqlite
 
-# Install Composer
-COPY --from=composer:2.7 /usr/bin/composer /usr/bin/composer
+# Instala Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Set working directory
 WORKDIR /app
 
-# Copy existing application
-COPY . .
-
-# Install PHP dependencies
+# Copia solo composer.json para aprovechar caché
+COPY composer.json composer.lock* ./
 RUN composer install --no-interaction --prefer-dist
 
-# Generate SQLite database if it doesn't exist
+# Luego copia todo el proyecto
+COPY . .
+
+# Asegura que el archivo SQLite exista
 RUN mkdir -p database && touch database/database.sqlite
 
-# Set permissions
-RUN chown -R www-data:www-data /app
+# Expone el puerto del servidor Laravel
+EXPOSE 8020
 
-CMD php artisan serve --host=0.0.0.0 --port=8000
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8020"]
